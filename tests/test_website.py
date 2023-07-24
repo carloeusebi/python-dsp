@@ -50,14 +50,38 @@ class TestWebsite(unittest.TestCase):
             self.assertFalse(self.website.login(self.credentials))
             self.assertEqual(stdout.getvalue(), expected_out)
 
-    @patch("builtins.input", MagicMock())
-    @patch("builtins.exit", MagicMock())
+    @patch("website.website.utils", MagicMock())
     @patch("sys.stdout", new_callable=StringIO)
     def test_login_server_error(self, stdout):
         mock_res = self._mock_response(raise_for_status=HTTPError(""), status=500)
-        expected_out = "Login in corso...\nC'è stato un problema con il server, Riprovare più tardi\n\n"
+        expected_out = "Login in corso...\nC'è stato un problema con il server, Riprovare più tardi\n"
         with patch("requests.post", return_value=mock_res):
             self.assertFalse(self.website.login(self.credentials))
+            self.assertEqual(stdout.getvalue(), expected_out)
+
+    def test_get_success(self):
+        json_data = {
+            "labels": ["id", "Nome", "Cognome"],
+            "list": [
+                {"id": 1, "fname": "Carlo", "lname": "Eusebi"},
+                {"id": 2, "fname": "Susan", "lname": "Brardinelli"},
+            ],
+        }
+        mock_res = self._mock_response(json_data=json_data)
+        with patch("requests.get", return_value=mock_res):
+            response = self.website.get("endpoint", "id")
+            assert response == json_data["list"]
+
+    @patch("website.website.utils", MagicMock())
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_get_server_error(self, stdout):
+        mock_res = self._mock_response(
+            raise_for_status=HTTPError("Error 500"), status=500
+        )
+        expected_out = "C'è stato un problema con il server, Riprovare più tardi\n"
+        with patch("requests.get", return_value=mock_res):
+            response = self.website.get("endpoint", "id")
+            self.assertEqual(response, None)
             self.assertEqual(stdout.getvalue(), expected_out)
 
 
