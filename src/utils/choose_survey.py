@@ -1,4 +1,4 @@
-from InquirerPy import inquirer, prompt
+from InquirerPy import prompt
 from InquirerPy.base.control import Choice
 
 from utils import utils
@@ -13,15 +13,15 @@ def get_patient_surveys(patient_id: int, surveys: list[dict]):
 
 
 def get_patient_name(patient_id: int, patients: list[dict]) -> str:
-    patient = next(p for p in patients if p["id"] == patient_id)
-    return f"{patient['fname']} {patient['lname']}"
+    patient = next((p for p in patients if p["id"] == patient_id), None)
+    return f"{patient['fname']} {patient['lname']}" if patient is not None else None
 
 
-def create_patients_choices(patients: list[dict]) -> list[Choice]:
+def get_patients_choices(patients: list[dict]) -> list[Choice]:
     return [Choice(p["id"], name=f"{p['lname']} {p['fname']}") for p in patients]
 
 
-def create_surveys_choices(surveys: list[dict]) -> list[Choice]:
+def get_surveys_choices(surveys: list[dict]) -> list[Choice]:
     return [
         Choice(
             s["id"],
@@ -32,23 +32,29 @@ def create_surveys_choices(surveys: list[dict]) -> list[Choice]:
 
 
 def choose_between_patients(patients: list[dict]) -> dict:
-    choices = create_patients_choices(patients)
-    return inquirer.fuzzy(
-        message="Scegli un Paziente:",
-        choices=[{"value": -1, "name": ">Indietro"}, *choices],
-        pointer=">>",
-        height=10,
-    ).execute()
+    choices = get_patients_choices(patients)
+    return prompt(
+        {
+            "type": "fuzzy",
+            "message": "Scegli un Paziente:",
+            "choices": [{"value": -1, "name": ">Indietro"}, *choices],
+            "pointer": ">>",
+            "height": 10,
+        }
+    )[0]
 
 
 def choose_between_surveys(surveys: list[dict]) -> dict:
-    choices = create_surveys_choices(surveys)
-    return inquirer.fuzzy(
-        message="Scegli un Test:",
-        choices=[{"value": -1, "name": ">Indietro"}, *choices],
-        pointer=">>",
-        height=10,
-    ).execute()
+    choices = get_surveys_choices(surveys)
+    return prompt(
+        {
+            "type": "fuzzy",
+            "message": "Scegli un Test:",
+            "choices": [{"value": -1, "name": ">Indietro"}, *choices],
+            "pointer": ">>",
+            "height": 10,
+        }
+    )[0]
 
 
 def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
@@ -81,11 +87,16 @@ def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
             {
                 "type": "fuzzy",
                 "message": "Cerca tra:",
-                "choices": ["Pazienti", "Test", "Esci"],
+                "choices": [
+                    Choice(0, name="Pazienti"),
+                    Choice(1, name="Test"),
+                    Choice(2, "Esci"),
+                ],
                 "pointer": ">>",
             }
         )[0]
-        if answer == "Pazienti":
+        # answer == "Pazienti"
+        if answer == 0:
             selected_patient_id = choose_between_patients(patients)
             # if answer is 'go back' continue
             if selected_patient_id == -1:
@@ -93,7 +104,7 @@ def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
                 continue
             # search through the completed surveys of the selected patient
             selected_patients_surveys = get_patient_surveys(
-                int(selected_patient_id), surveys
+                selected_patient_id, surveys
             )
             # if the patient doesn't have completed surveys prints a message and repeat the cycle
             if not selected_patients_surveys:
@@ -107,13 +118,16 @@ def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
                 if selected_survey == -1:
                     utils.clearscreen()
                     continue
+                # todo validate id
                 return selected_survey
-        elif answer == "Test":
+        # answer == 'Test'
+        elif answer == 1:
             selected_survey = choose_between_surveys(surveys)
             # if answer is 'go back' continue
             if selected_survey == -1:
                 utils.clearscreen()
                 continue
+            # todo validate id
             return selected_survey
-        elif answer == "Esci":
+        elif answer == 3:  # answer == 'Esci'
             exit()
