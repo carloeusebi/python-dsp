@@ -25,7 +25,7 @@ class Website:
                 print("C'è stato un problema con il server, Riprovare più tardi")
                 utils.die(err)
 
-    def get(self, endpoint: str, order_by: str = "id") -> list[dict[str, str | int]]:
+    def get(self, endpoint: str, order_by: str = "id") -> list[dict]:
         headers = {"Cookie": self.cookie}
         params = {"order_by": order_by}
         try:
