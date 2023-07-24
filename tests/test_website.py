@@ -1,5 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
+from requests.exceptions import HTTPError
+from io import StringIO
+
 from website.website import Website
 
 
@@ -7,6 +10,7 @@ class TestWebsite(unittest.TestCase):
     def setUp(self):
         self.url = "https://example.com/api"
         self.website = Website(self.url)
+        self.credentials = {"username": "testuser", "password": "testpassword"}
         assert self.url == self.website.url
         assert self.website.cookie == ""
 
@@ -33,9 +37,28 @@ class TestWebsite(unittest.TestCase):
             json_data={"session_id": "12345"}, cookie={"TOKEN": "abcdef"}
         )
         with patch("requests.post", return_value=mock_res):
-            credentials = {"username": "testuser", "password": "testpassword"}
-            self.assertTrue(self.website.login(credentials))
+            self.assertTrue(self.website.login(self.credentials))
             self.assertEqual(self.website.cookie, "TOKEN=abcdef; PHPSESSID=12345")
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_login_wrong_credentials(self, stdout):
+        mock_res = self._mock_response(
+            raise_for_status=HTTPError("invalid-credentials"), status=401
+        )
+        expected_out = "Login in corso...\nUsername o Password non validi\n"
+        with patch("requests.post", return_value=mock_res):
+            self.assertFalse(self.website.login(self.credentials))
+            self.assertEqual(stdout.getvalue(), expected_out)
+
+    @patch("builtins.input", MagicMock())
+    @patch("builtins.exit", MagicMock())
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_login_server_error(self, stdout):
+        mock_res = self._mock_response(raise_for_status=HTTPError(""), status=500)
+        expected_out = "Login in corso...\nC'è stato un problema con il server, Riprovare più tardi\n\n"
+        with patch("requests.post", return_value=mock_res):
+            self.assertFalse(self.website.login(self.credentials))
+            self.assertEqual(stdout.getvalue(), expected_out)
 
 
 if __name__ == "main":

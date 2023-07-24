@@ -17,10 +17,11 @@ class Website:
             self.cookie = f"TOKEN={token}; PHPSESSID={session_id}"
             return True
         except requests.exceptions.HTTPError as err:
-            if err.response.status_code == 401:
+            if response.status_code == 401:
                 os.system("cls" if os.name in ("nt", "dos") else "clear")
                 print("Username o Password non validi")
             else:
                 print("C'è stato un problema con il server, Riprovare più tardi")
+                print(err)
                 input("Premi un tasto per uscire")
                 exit()
