@@ -1,5 +1,6 @@
-import os
 import requests
+
+from utils import utils
 
 
 class Website:
@@ -18,10 +19,8 @@ class Website:
             return True
         except requests.exceptions.HTTPError as err:
             if response.status_code == 401:
-                os.system("cls" if os.name in ("nt", "dos") else "clear")
+                utils.clearscreen()
                 print("Username o Password non validi")
             else:
                 print("C'è stato un problema con il server, Riprovare più tardi")
-                print(err)
-                input("Premi un tasto per uscire")
-                exit()
+                utils.die(err)
