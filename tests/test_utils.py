@@ -24,4 +24,4 @@ def test_die(stdout):
 
 
 def test_test_passed():
-    assert utils.test_passed() == False
+    assert utils.test_passed() is False

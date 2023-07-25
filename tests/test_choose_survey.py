@@ -1,5 +1,5 @@
 from InquirerPy.base.control import Choice
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import unittest
 
 from utils import choose_survey, helpers
