@@ -1,20 +1,21 @@
 from InquirerPy import prompt
 from InquirerPy.base.control import Choice
 
-from utils import utils
+from utils import utils, helpers
 
 
-def get_patient_surveys(patient_id: int, surveys: list[dict]):
-    patient_surveys: list[dict] = []
-    for survey in surveys:
-        if patient_id == survey["patient_id"]:
-            patient_surveys.append(survey)
-    return patient_surveys
+def create_patients_choices(patients: list[dict]) -> list[Choice]:
+    return [Choice(p["id"], name=f"{p['lname']} {p['fname']}") for p in patients]
 
 
-def get_patient_name(patient_id: int, patients: list[dict]) -> str:
-    patient = next((p for p in patients if p["id"] == patient_id), None)
-    return f"{patient['fname']} {patient['lname']}" if patient is not None else None
+def create_surveys_choices(surveys: list[dict]) -> list[Choice]:
+    return [
+        Choice(
+            s["id"],
+            name=f"{s['title']} di {s['patient_name']} completato il {s['last_update']}",
+        )
+        for s in surveys
+    ]
 
 
 def get_patients_choices(patients: list[dict]) -> list[Choice]:
@@ -95,39 +96,36 @@ def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
                 "pointer": ">>",
             }
         )[0]
-        # answer == "Pazienti"
-        if answer == 0:
+        if answer == 0:  # answer == "Pazienti"
             selected_patient_id = choose_between_patients(patients)
             # if answer is 'go back' continue
             if selected_patient_id == -1:
                 utils.clearscreen()
                 continue
             # search through the completed surveys of the selected patient
-            selected_patients_surveys = get_patient_surveys(
+            selected_patients_surveys = helpers.get_patient_surveys(
                 selected_patient_id, surveys
             )
             # if the patient doesn't have completed surveys prints a message and repeat the cycle
             if not selected_patients_surveys:
                 utils.clearscreen()
-                patient_name = get_patient_name(selected_patient_id, patients)
+                patient_name = helpers.get_patient_name(selected_patient_id, patients)
                 print(f"{patient_name} non ha completato nessun Test")
             else:
                 # give the selected patients surveys as options
-                selected_survey = choose_between_surveys(selected_patients_surveys)
-                # if answer is 'go back' continue
-                if selected_survey == -1:
+                selected_survey_id = choose_between_surveys(selected_patients_surveys)
+                selected_survey = helpers.get_survey_by_id(selected_survey_id, surveys)
+                if selected_survey is None:
                     utils.clearscreen()
                     continue
-                # todo validate id
                 return selected_survey
-        # answer == 'Test'
-        elif answer == 1:
-            selected_survey = choose_between_surveys(surveys)
+        elif answer == 1:  # answer == "Test"
+            selected_survey_id = choose_between_surveys(surveys)
+            selected_survey = helpers.get_survey_by_id(selected_survey_id, surveys)
             # if answer is 'go back' continue
-            if selected_survey == -1:
+            if not selected_survey:
                 utils.clearscreen()
                 continue
-            # todo validate id
             return selected_survey
-        elif answer == 3:  # answer == 'Esci'
+        elif answer == 2:  # answer == 'Esci'
             exit()

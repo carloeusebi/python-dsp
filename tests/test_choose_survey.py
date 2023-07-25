@@ -1,4 +1,4 @@
-from utils import choose_survey
+from utils import choose_survey, helpers
 
 from InquirerPy.base.control import Choice
 
@@ -45,15 +45,15 @@ def get_dummy_surveys() -> list[dict]:
 
 def test_get_patient_survey():
     surveys = get_dummy_surveys()
-    result = choose_survey.get_patient_surveys(1, surveys)
+    result = helpers.get_patient_surveys(1, surveys)
     expected_result = [surveys[0]]
     # assert one match
     assert result == expected_result
-    result = choose_survey.get_patient_surveys(4, surveys)
+    result = helpers.get_patient_surveys(4, surveys)
     # assert no matches
     expected_result = []
     assert result == expected_result
-    result = choose_survey.get_patient_surveys(3, surveys)
+    result = helpers.get_patient_surveys(3, surveys)
     expected_result = [
         surveys[2],
         surveys[3],
@@ -64,10 +64,10 @@ def test_get_patient_survey():
 
 def test_get_patient_name():
     patients = get_dummy_patients()
-    result = choose_survey.get_patient_name(1, patients)
+    result = helpers.get_patient_name(1, patients)
     expected_result = "Carlo Eusebi"
     assert result == expected_result
-    result = choose_survey.get_patient_name(3, patients)
+    result = helpers.get_patient_name(3, patients)
     expected_result = None
     assert result == expected_result
 
@@ -92,3 +92,12 @@ def test_get_surveys_choices():
         Choice(4, name="Survey 4 di John Doe completato il 2023-07-25"),
     ]
     assert choices == expected_choices
+
+
+def test_get_surveys_by_id():
+    surveys = get_dummy_surveys()
+    selected_survey = helpers.get_survey_by_id(1, surveys)
+    assert selected_survey == surveys[0]
+    # test choosing back (-1) returns None
+    selected_survey = helpers.get_survey_by_id(-1, surveys)
+    assert selected_survey is None
