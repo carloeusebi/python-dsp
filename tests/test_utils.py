@@ -21,3 +21,7 @@ def test_die(stdout):
     # test die with param
     utils.die(output)
     assert stdout.getvalue() == expected_out + "\n"
+
+
+def test_test_passed():
+    assert utils.test_passed() == False

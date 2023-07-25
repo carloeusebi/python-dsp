@@ -4,20 +4,6 @@ from InquirerPy.base.control import Choice
 from utils import utils, helpers
 
 
-def create_patients_choices(patients: list[dict]) -> list[Choice]:
-    return [Choice(p["id"], name=f"{p['lname']} {p['fname']}") for p in patients]
-
-
-def create_surveys_choices(surveys: list[dict]) -> list[Choice]:
-    return [
-        Choice(
-            s["id"],
-            name=f"{s['title']} di {s['patient_name']} completato il {s['last_update']}",
-        )
-        for s in surveys
-    ]
-
-
 def get_patients_choices(patients: list[dict]) -> list[Choice]:
     return [Choice(p["id"], name=f"{p['lname']} {p['fname']}") for p in patients]
 
@@ -84,6 +70,9 @@ def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
         - The user can also select "Esci" (Exit) to terminate the program.
     """
     while True:
+        # this is used to escape the loop while testing the function
+        if utils.test_passed():
+            return
         answer = prompt(
             {
                 "type": "fuzzy",
@@ -91,7 +80,7 @@ def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
                 "choices": [
                     Choice(0, name="Pazienti"),
                     Choice(1, name="Test"),
-                    Choice(2, "Esci"),
+                    Choice(2, name="Esci"),
                 ],
                 "pointer": ">>",
             }
@@ -128,4 +117,4 @@ def choose_survey(surveys: list[dict], patients: list[dict]) -> dict:
                 continue
             return selected_survey
         elif answer == 2:  # answer == 'Esci'
-            exit()
+            exit(0)

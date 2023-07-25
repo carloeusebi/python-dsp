@@ -83,7 +83,3 @@ class TestWebsite(unittest.TestCase):
             response = self.website.get("endpoint", "id")
             self.assertEqual(response, None)
             self.assertEqual(stdout.getvalue(), expected_out)
-
-
-if __name__ == "main":
-    unittest.main()
