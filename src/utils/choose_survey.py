@@ -12,7 +12,7 @@ def get_surveys_choices(surveys: list[dict]) -> list[Choice]:
     return [
         Choice(
             s["id"],
-            name=f"{s['title']} di {s['patient_name']} completato il {s['last_update']}",
+            name=f"{s['title']} di {s['fname']} {s['lname']} completato il {s['last_update']}",
         )
         for s in surveys
     ]

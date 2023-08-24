@@ -3,11 +3,12 @@ from InquirerPy import prompt
 from website.website import Website
 from utils import utils, choose_survey
 
-API_URL = "https://www.carloeusebiwebdeveloper.it/api"
+API_URL = "https://www.dellasantapsicologo.it/api"
 PATIENTS_ENDPOINT = "patients"
 SURVEYS_ENDPOINT = "surveys"
-PATIENTS_ORDER = "lname"
-SURVEYS_ORDER = "last_updated"
+
+SURVEYS_PARAMS = {"order_by": "last_update", "completed": "1"}
+PATIENTS_PARAMS = {"order_by": "lname"}
 
 
 def get_credentials():
@@ -19,18 +20,6 @@ def get_credentials():
     )
 
 
-def map_surveys(surveys: list[dict], patients: list[dict]) -> list[dict]:
-    completed_surveys: list[dict] = []
-    for survey in surveys:
-        patient_id = survey["patient_id"]
-        for patient in patients:
-            if patient["id"] == patient_id:
-                survey["patient_name"] = f"{patient['fname']} {patient['lname']}"
-        if survey["completed"]:
-            completed_surveys.append(survey)
-    return completed_surveys
-
-
 def main():
     utils.clearscreen()
     website = Website(API_URL)
@@ -39,15 +28,24 @@ def main():
         pass
     print("Accesso riuscito")
     # get surveys and patients from website's api
-    print("Download in corso... [-------------------------]", end="\r")
-    row_surveys = website.get(SURVEYS_ENDPOINT, SURVEYS_ORDER)
-    print("Download in corso... [=============------------]", end="\r")
-    patients = website.get(PATIENTS_ENDPOINT, PATIENTS_ORDER)
+    print("Download in corso... [.........................]", end="\r")
+    surveys = website.get(SURVEYS_ENDPOINT, SURVEYS_PARAMS)["list"]
+    print("Download in corso... [#############............]", end="\r")
+    patients = website.get(PATIENTS_ENDPOINT, PATIENTS_PARAMS)["list"]
     utils.clearscreen()
     # filters completed surveys and add patient's name
-    surveys = map_surveys(row_surveys, patients)
     selected_survey = choose_survey.choose_survey(surveys, patients)
-    print(selected_survey)
+    result = website.get("tests/score", params={"token": selected_survey["token"]})[
+        "scores"
+    ]
+
+    for question in result:
+        print(question)
+        for variable in result[question]:
+            score = result[question][variable]
+            print(f"- {variable}: {score}")
+
+    # todo better results handling
 
 
 if __name__ == "__main__":

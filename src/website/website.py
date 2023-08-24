@@ -25,15 +25,14 @@ class Website:
                 print("C'è stato un problema con il server, Riprovare più tardi")
                 utils.die(err)
 
-    def get(self, endpoint: str, order_by: str = "id") -> list[dict]:
+    def get(self, endpoint: str, params) -> list[dict]:
         headers = {"Cookie": self.cookie}
-        params = {"order_by": order_by}
         try:
             response = requests.get(
                 f"{self.url}/{endpoint}", headers=headers, params=params
             )
             response.raise_for_status()
-            return response.json()["list"]
+            return response.json()
         except requests.exceptions.HTTPError as err:
             print("C'è stato un problema con il server, Riprovare più tardi")
             utils.die(err)

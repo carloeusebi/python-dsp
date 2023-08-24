@@ -69,7 +69,7 @@ class TestWebsite(unittest.TestCase):
         }
         mock_res = self._mock_response(json_data=json_data)
         with patch("requests.get", return_value=mock_res):
-            response = self.website.get("endpoint", "id")
+            response = self.website.get("endpoint", "id")["list"]
             assert response == json_data["list"]
 
     @patch("website.website.utils", MagicMock())
